@@ -2,14 +2,7 @@ async function nativeTransferableStream(stdin) {
   return new Promise((resolve) => {
     onmessage = async (e) => {
       if (e.data === 'Ready') {
-        const encoder = new TextEncoder();
-        const input = encoder.encode(stdin);
-        const readable = new ReadableStream({
-          start(c) {
-            c.enqueue(input);
-            c.close();
-          },
-        });
+        const readable = new Blob([stdin]).stream();
         e.source.postMessage(readable, e.origin, [readable]);
       }
       if (e.data instanceof ReadableStream) {
