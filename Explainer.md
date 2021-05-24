@@ -8,7 +8,9 @@ See [Issue 1115640: [FUGU] NativeTransferableStream](https://bugs.chromium.org/p
 
 **Solution**
 
-Use existing web platform technologies to stream STDIN and STDOUT from the browser.
+Use existing web platform technologies to stream from (STDIN) and to (STDOUT)  the browser at any origin. 
+
+Browser <=> stream <=> local server.
 
 Steps:
 
