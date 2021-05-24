@@ -31,7 +31,3 @@ Steps:
 9. Transfer `ReadableStream` of `Response.body` representing STDOUT using `postMessage()` from newly opened `Window` to `opener`.
 
 10. Read `ReadableStream` at `opener`.
-
-**Proof of concept**
-
-[NativeTransferableStreams_ProofOfConcept](https://github.com/guest271314/NativeTransferableStreams/blob/main/NativeTransferableStreams_ProofOfConcept.webm)
