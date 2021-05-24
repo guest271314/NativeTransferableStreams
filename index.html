@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    NativeTransferableStream
+    <script>
+      onload = async (e) => {
+        blur();
+        opener.postMessage('Ready', name);
+        onmessage = async ({ data }) => {
+          await data
+            .pipeThrough(new TextDecoderStream())
+            .pipeTo(
+              new WritableStream({
+                async write(value, c) {
+                  const fd = new FormData();
+                  fd.append('tts', value);
+                  const { body } = await fetch('http://localhost:8000', {
+                    method: 'post',
+                    body: fd,
+                  });
+                  opener.postMessage(body, name, [body]);
+                },
+              })
+            )
+            .catch(() => close());
+        };
+      };
+    </script>
+  </body>
+</html>
