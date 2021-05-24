@@ -31,3 +31,122 @@ Steps:
 9. Transfer `ReadableStream` of `Response.body` representing STDOUT using `postMessage()` from newly opened `Window` to `opener`.
 
 10. Read `ReadableStream` at `opener`.
+
+**Example**
+
+Local server
+```
+<?php 
+if (isset($_POST["tts"])) {
+    print($_GET["tts"]);
+    header('Vary: Origin');
+    header("Access-Control-Allow-Origin: *");
+    header("Access-Control-Allow-Methods: GET, POST, OPTIONS, HEAD");
+    header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers");    
+    header("Content-Type: text/plain");
+    header("X-Powered-By:");
+    echo passthru($_POST["tts"]);
+    exit();
+  }
+```
+index.html in root of server
+
+```
+<!DOCTYPE html>
+<html>
+  <body>
+    NativeTransferableStream
+    <script>
+      onload = async (e) => {
+        blur();
+        opener.postMessage('Ready', name);
+        onmessage = async ({ data }) => {
+          await data
+            .pipeThrough(new TextDecoderStream())
+            .pipeTo(
+              new WritableStream({
+                async write(value, c) {
+                  const fd = new FormData();
+                  fd.append('tts', value);
+                  const { body } = await fetch('http://localhost:8000', {
+                    method: 'post',
+                    body: fd,
+                  });
+                  opener.postMessage(body, name, [body]);
+                },
+              })
+            )
+            .catch(() => close());
+        };
+      };
+    </script>
+  </body>
+</html>
+```
+Usage at any origin
+
+```
+async function nativeTransferableStream(stdin) {
+  return new Promise((resolve) => {
+    onmessage = async (e) => {
+      if (e.data === 'Ready') {
+        const encoder = new TextEncoder();
+        const input = encoder.encode(stdin);
+        const readable = new ReadableStream({
+          start(c) {
+            c.enqueue(input);
+            c.close();
+          },
+        });
+        e.source.postMessage(readable, e.origin, [readable]);
+      }
+      if (e.data instanceof ReadableStream) {
+        const message = await stream(e.data);
+        onmessage = null;
+        transferableWindow.close();
+        resolve(message);
+      }
+    };
+    const transferableWindow = window.open(
+      'http://localhost:8000/index.html',
+      location.href,
+      'menubar=no,location=no,resizable=no,scrollbars=no,status=no,width=100,height=100'
+    );
+  }).catch((err) => {
+    throw err;
+  });
+}
+
+let text = `... So we need people to have weird new ideas. We need more ideas to break it and make it better.
+
+Use it
+Break it
+File bugs
+Request features
+
+- Real time front-end alchemy, or: 
+  capturing, playing, altering and encoding video and audio streams, without servers or plugins! 
+  by Soledad Penadés
+   
+von Braun believed in testing. I cannot emphasize that term enough – test, test, test. 
+Test to the point it breaks. 
+
+- Ed Buckbee, NASA Public Affairs Officer, Chasing the Moon
+
+Now watch. Um, this how science works.
+One researcher comes up with a result.
+And that is not the truth. No, no.
+A scientific emergent truth is not the
+result of one experiment. What has to 
+happen is somebody else has to verify
+it. Preferably a competitor. Preferably
+someone who doesn't want you to be correct.
+
+- Neil deGrasse Tyson, May 3, 2017 at 92nd Street Y`;
+
+try {
+  await nativeTransferableStream(`espeak-ng -m --stdout -v 'Storm' "${text}"`);
+} catch (err) {
+  console.error(err);
+}
+```
