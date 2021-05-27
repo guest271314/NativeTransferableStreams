@@ -58,7 +58,6 @@ index.html in root of server
     NativeTransferableStream
     <script>
       onload = async (e) => {
-        blur();
         opener.postMessage('Ready', name);
         onmessage = async ({ data }) => {
           await data
