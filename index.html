@@ -12,6 +12,7 @@
           const { body } = await fetch('http://localhost:8000', {
             method: 'post',
             body: fd,
+            cache: 'no-store'
           });
           opener.postMessage(body, name, [body]);
         };
