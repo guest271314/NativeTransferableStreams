@@ -12,7 +12,7 @@ Use existing web platform technologies to stream from the browser (STDIN) to loc
 
 Steps:
 
-1. Start your local server. This can be achieves using a browser extension with Native Messaging to toggle the local server on and off.
+1. Start your local server.
 
 2. Create an HTML document in the root of the server directory.
 
