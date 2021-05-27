@@ -4,7 +4,6 @@
     NativeTransferableStream
     <script>
       onload = async (e) => {
-        blur();
         opener.postMessage('Ready', name);
         onmessage = async ({ data }) => {
           const stdin = await new Response(data).text();
