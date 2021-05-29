@@ -1,0 +1,10 @@
+{
+  "name": "native_messaging_local_server",
+  "version": "1.0",
+  "manifest_version": 3,
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": ["nativeMessaging", "tabs"],
+  "action": {}
+}
