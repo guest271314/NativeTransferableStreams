@@ -12,7 +12,7 @@ Use existing web platform technologies to stream from the browser (STDIN) to loc
 
 Steps:
 
-1. Start your local server.
+1. Start your local server. The local server can be started and stopped using a browser extension and Native Messaging by clicking on extension badge icon, or setting `document.title` to `'start_local_server'` and `'stop_local_server'`. An example implementation in this repository is [native_messaging_local_server](https://github.com/guest271314/NativeTransferableStreams/tree/main/native_messaging_local_server).
 
 2. Create an HTML document in the root of the server directory.
 
