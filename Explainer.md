@@ -101,11 +101,15 @@ async function nativeTransferableStream(stdin) {
       }
       if (e.data instanceof ReadableStream) {
         const message = await stream(e.data);
+        // Turn off local server using extension and Native Messaging
+        // setDocumentTitle();
         onmessage = null;
         transferableWindow.close();
         resolve(message);
       }
     };
+    // Turn on local server using extension and Native Messaging
+    // setDocumentTitle();
     const transferableWindow = window.open(
       'http://localhost:8000/index.html',
       location.href,
@@ -114,6 +118,11 @@ async function nativeTransferableStream(stdin) {
   }).catch((err) => {
     throw err;
   });
+}
+
+// Turn local server, applications, devices, shell scripts, on and off programmatically using extension, Native Messaging
+function setDocumentTitle() {
+  return document.title = document.title === 'start_local_server' ? 'stop_local_server' : 'start_local_server';
 }
 
 let text = `... So we need people to have weird new ideas. We need more ideas to break it and make it better.
