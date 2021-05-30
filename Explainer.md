@@ -60,22 +60,15 @@ index.html in root of server
       onload = async (e) => {
         opener.postMessage('Ready', name);
         onmessage = async ({ data }) => {
-          await data
-            .pipeThrough(new TextDecoderStream())
-            .pipeTo(
-              new WritableStream({
-                async write(value, c) {
-                  const fd = new FormData();
-                  fd.append('tts', value);
-                  const { body } = await fetch('http://localhost:8000', {
-                    method: 'post',
-                    body: fd,
-                  });
-                  opener.postMessage(body, name, [body]);
-                },
-              })
-            )
-            .catch(() => close());
+          const stdin = await new Response(data).text();
+          const fd = new FormData();
+          fd.append('tts', stdin);
+          const { body } = await fetch('http://localhost:8000', {
+            method: 'post',
+            body: fd,
+            cache: 'no-store',
+          });
+          opener.postMessage(body, name, [body]);
         };
       };
     </script>
@@ -89,14 +82,7 @@ async function nativeTransferableStream(stdin) {
   return new Promise((resolve) => {
     onmessage = async (e) => {
       if (e.data === 'Ready') {
-        const encoder = new TextEncoder();
-        const input = encoder.encode(stdin);
-        const readable = new ReadableStream({
-          start(c) {
-            c.enqueue(input);
-            c.close();
-          },
-        });
+        const readable = new Blob([stdin]).stream();
         e.source.postMessage(readable, e.origin, [readable]);
       }
       if (e.data instanceof ReadableStream) {
@@ -120,7 +106,8 @@ async function nativeTransferableStream(stdin) {
   });
 }
 
-// Turn local server, applications, devices, shell scripts, on and off programmatically using extension, Native Messaging
+// Turn local server, applications, devices, shell scripts, on and off programmatically
+// or with user action using an extension and Native Messaging
 function setDocumentTitle() {
   return document.title = document.title === 'start_local_server' ? 'stop_local_server' : 'start_local_server';
 }
