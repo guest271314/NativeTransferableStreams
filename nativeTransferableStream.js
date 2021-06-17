@@ -1,17 +1,21 @@
-async function nativeTransferableStream(stdin) {
-  return new Promise((resolve) => {
+async function nativeTransferableStream(readable) {
+  return new Promise(async (resolve) => {
+    // setDocumentTitle();
     onmessage = async (e) => {
       if (e.data === 'Ready') {
-        const readable = new Blob([stdin]).stream();
         e.source.postMessage(readable, e.origin, [readable]);
+      } else {
+        console.log(e.data);
       }
       if (e.data instanceof ReadableStream) {
         const message = await audioStream(e.data);
         onmessage = null;
+        // setDocumentTitle();
         transferableWindow.close();
         resolve(message);
       }
     };
+
     const transferableWindow = window.open(
       'http://localhost:8000/index.html',
       location.href,
