@@ -60,9 +60,11 @@ index.html in root of server
       onload = async (e) => {
         opener.postMessage('Ready', name);
         onmessage = async ({ data }) => {
-          const stdin = await new Response(data).text();
+          const { value: file, done } = await e.data.getReader().read();
           const fd = new FormData();
-          fd.append('tts', stdin);
+          const stdin = await file.text();
+          document.body.textContent = `Running ${stdin}`;
+          fd.append(file.name, stdin);
           const { body } = await fetch('http://localhost:8000', {
             method: 'post',
             body: fd,
@@ -78,24 +80,24 @@ index.html in root of server
 Usage at any origin
 
 ```
-async function nativeTransferableStream(stdin) {
-  return new Promise((resolve) => {
+async function nativeTransferableStream(readable) {
+  return new Promise(async (resolve) => {
+    setDocumentTitle();
     onmessage = async (e) => {
       if (e.data === 'Ready') {
-        const readable = new Blob([stdin]).stream();
         e.source.postMessage(readable, e.origin, [readable]);
+      } else {
+        console.log(e.data);
       }
       if (e.data instanceof ReadableStream) {
-        const message = await stream(e.data);
-        // Turn off local server using extension and Native Messaging
-        // setDocumentTitle();
+        const message = await audioStream(e.data, transferableWindow);
         onmessage = null;
-        transferableWindow.close();
+        setDocumentTitle();
+        // transferableWindow.close();
         resolve(message);
       }
     };
-    // Turn on local server using extension and Native Messaging
-    // setDocumentTitle();
+
     const transferableWindow = window.open(
       'http://localhost:8000/index.html',
       location.href,
@@ -109,7 +111,10 @@ async function nativeTransferableStream(stdin) {
 // Turn local server, applications, devices, shell scripts, on and off programmatically
 // or with user action using an extension and Native Messaging
 function setDocumentTitle() {
-  return document.title = document.title === 'start_local_server' ? 'stop_local_server' : 'start_local_server';
+  return (document.title =
+    document.title === 'start_local_server'
+      ? 'stop_local_server'
+      : 'start_local_server');
 }
 
 let text = `... So we need people to have weird new ideas. We need more ideas to break it and make it better.
@@ -140,8 +145,21 @@ someone who doesn't want you to be correct.
 - Neil deGrasse Tyson, May 3, 2017 at 92nd Street Y`;
 
 try {
-  await nativeTransferableStream(`espeak-ng -m --stdout -v 'Storm' "${text}"`);
-} catch (err) {
+  console.log(
+    await nativeTransferableStream(
+      new ReadableStream({
+        start(c) {
+          c.enqueue(
+            new File([`espeak-ng -m --stdout "${text}"`], 'tts', {
+              type: 'application/octet-stream',
+            })
+          );
+          c.close();
+        },
+      })
+    );
+} 
+catch (err) {
   console.error(err);
 }
 ```
