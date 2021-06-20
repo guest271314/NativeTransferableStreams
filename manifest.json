@@ -1,0 +1,11 @@
+{
+  "name": "Native Transferable Streams",
+  "version": "1.0",
+  "manifest_version": 3,
+  "permissions": ["nativeMessaging"],
+  "web_accessible_resources": [    {
+      "resources": [ "nativeTransferableStream.html", "nativeTransferableStream.js" ],
+      "matches": [ "https://github.com/*", "https://bugs.chromium.org/*", "http://localhost:8000/*" ],
+      "extensions": [ "<id>" ]
+  }]
+}
