@@ -1,9 +1,0 @@
-{
-  "name": "native_messaging_local_server",
-  "description": "Start, stop local server",
-  "path": "/path/to/local_server.sh",
-  "type": "stdio",
-  "allowed_origins": [
-    "chrome-extension://<id>/"
-  ]
-}
