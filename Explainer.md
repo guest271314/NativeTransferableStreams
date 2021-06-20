@@ -12,111 +12,23 @@ Use existing web platform technologies to stream from the browser (STDIN) to loc
 
 Steps:
 
-1. Start your local server. The local server can be started and stopped using a browser extension and Native Messaging by clicking on extension badge icon, or setting `document.title` to `'start_local_server'` and `'stop_local_server'`. An example implementation in this repository is [native_messaging_local_server](https://github.com/guest271314/NativeTransferableStreams/tree/main/native_messaging_local_server).
+1. On Web page create an `<iframe>` with `src` set to `chrome-extension://<id>/nativeTransferableStream.html`, append element to `document`.
 
-2. Create an HTML document in the root of the server directory.
+2. Turn on local server in `nativeTransferableStream.js` using Native Messaging.
 
-3. Turn off popup blocker at browser settings/preferences.
+3. `fetch()` `localhost` with `POST` body set as command to run at a local shell, for example using PHP `passthru()`.
 
-4. Open `Window` using `window.open()` with URL set to HTML document at 2.
+4. Transfer `ReadableStream` of `Response.body` representing STDOUT using `postMessage()` from `<iframe>` to `parent`.
 
-5. `postMessage()` to `opener` from newly opened `Window`.
+5. Turn off local server in `nativeTransferableStream.js` using Native Messaging.
 
-6. Transfer `ReadableStream` representing `STDIN` using `postMessage()` from `opener` to newly opened `Window`.
-
-7. Read `ReadableStream` at newly opened Window.
-
-8. `fetch()` localhost with `POST` body set as command to run at a local shell, for example using PHP `passthru()`.
-
-9. Transfer `ReadableStream` of `Response.body` representing STDOUT using `postMessage()` from newly opened `Window` to `opener`.
-
-10. Read `ReadableStream` at `opener`.
+6. Read `ReadableStream` at `parent`, remove `<iframe>` element from `document`.
 
 **Example**
 
-Local server
-```
-<?php 
-if (isset($_POST["tts"])) {
-    print($_GET["tts"]);
-    header('Vary: Origin');
-    header("Access-Control-Allow-Origin: *");
-    header("Access-Control-Allow-Methods: GET, POST, OPTIONS, HEAD");
-    header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers");    
-    header("Content-Type: text/plain");
-    header("X-Powered-By:");
-    echo passthru($_POST["tts"]);
-    exit();
-  }
-```
-index.html in root of server
+Usage
 
 ```
-<!DOCTYPE html>
-<html>
-  <body>
-    NativeTransferableStream
-    <script>
-      onload = async (e) => {
-        opener.postMessage('Ready', name);
-        onmessage = async ({ data }) => {
-          const { value: file, done } = await e.data.getReader().read();
-          const fd = new FormData();
-          const stdin = await file.text();
-          document.body.textContent = `Running ${stdin}`;
-          fd.append(file.name, stdin);
-          const { body } = await fetch('http://localhost:8000', {
-            method: 'post',
-            body: fd,
-            cache: 'no-store',
-          });
-          opener.postMessage(body, name, [body]);
-        };
-      };
-    </script>
-  </body>
-</html>
-```
-Usage at any origin
-
-```
-async function nativeTransferableStream(readable) {
-  return new Promise(async (resolve) => {
-    setDocumentTitle();
-    onmessage = async (e) => {
-      if (e.data === 'Ready') {
-        e.source.postMessage(readable, e.origin, [readable]);
-      } else {
-        console.log(e.data);
-      }
-      if (e.data instanceof ReadableStream) {
-        const message = await audioStream(e.data, transferableWindow);
-        onmessage = null;
-        setDocumentTitle();
-        // transferableWindow.close();
-        resolve(message);
-      }
-    };
-
-    const transferableWindow = window.open(
-      'http://localhost:8000/index.html',
-      location.href,
-      'menubar=no,location=no,resizable=no,scrollbars=no,status=no,width=100,height=100'
-    );
-  }).catch((err) => {
-    throw err;
-  });
-}
-
-// Turn local server, applications, devices, shell scripts, on and off programmatically
-// or with user action using an extension and Native Messaging
-function setDocumentTitle() {
-  return (document.title =
-    document.title === 'start_local_server'
-      ? 'stop_local_server'
-      : 'start_local_server');
-}
-
 let text = `... So we need people to have weird new ideas. We need more ideas to break it and make it better.
 
 Use it
@@ -144,22 +56,50 @@ someone who doesn't want you to be correct.
 
 - Neil deGrasse Tyson, May 3, 2017 at 92nd Street Y`;
 
+async function nativeTransferableStream(readable) {
+  return new Promise(async (resolve) => {
+    onmessage = async (e) => {
+      if (e.data === 'Ready') {
+        e.source.postMessage(readable, e.origin, [readable]);
+      } else {
+        console.log(e.data);
+      }
+      if (e.data instanceof ReadableStream) {
+        const message = await audioStream(e.data);
+        onmessage = null;
+        resolve(message);
+      }
+    };
+    const transferableWindow = document.createElement('iframe');
+    transferableWindow.style.display = 'none';
+    transferableWindow.name = location.href;
+    transferableWindow.src = 'chrome-extension://<id>/nativeTransferableStream.html';
+    document.body.appendChild(transferableWindow);
+  }).catch((err) => {
+    throw err;
+  });
+}
+
 try {
+  let text = `Test.`.replace(
+    /"/g,
+    ''
+  );
   console.log(
     await nativeTransferableStream(
       new ReadableStream({
         start(c) {
           c.enqueue(
-            new File([`espeak-ng -m --stdout "${text}"`], 'tts', {
+            new File([`espeak-ng -m -v 'Storm' --stdout "${text}"`], 'tts', {
               type: 'application/octet-stream',
             })
           );
           c.close();
         },
       })
-    );
-} 
-catch (err) {
+    )
+  );
+} catch (err) {
   console.error(err);
-}
+};
 ```
