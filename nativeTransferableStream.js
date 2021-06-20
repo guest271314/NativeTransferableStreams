@@ -1,6 +1,5 @@
 async function nativeTransferableStream(readable) {
   return new Promise(async (resolve) => {
-    // setDocumentTitle();
     onmessage = async (e) => {
       if (e.data === 'Ready') {
         e.source.postMessage(readable, e.origin, [readable]);
@@ -10,17 +9,15 @@ async function nativeTransferableStream(readable) {
       if (e.data instanceof ReadableStream) {
         const message = await audioStream(e.data);
         onmessage = null;
-        // setDocumentTitle();
-        transferableWindow.close();
         resolve(message);
       }
     };
 
-    const transferableWindow = window.open(
-      'http://localhost:8000/index.html',
-      location.href,
-      'menubar=no,location=no,resizable=no,scrollbars=no,status=no,width=100,height=100'
-    );
+    const transferableWindow = document.createElement('iframe');
+    transferableWindow.style.display = 'none';
+    transferableWindow.name = location.href;
+    transferableWindow.src = 'chrome-extension://<id>/nativeTransferableStream.html';
+    document.body.appendChild(transferableWindow);
   }).catch((err) => {
     throw err;
   });
