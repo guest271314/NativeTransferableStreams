@@ -4,6 +4,6 @@
   "path": "/path/to/local_server.sh",
   "type": "stdio",
   "allowed_origins": [
-    "<id>"
+    "chrome-extension://<id>/"
   ]
 }
