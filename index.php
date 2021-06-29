@@ -7,6 +7,5 @@ if (isset($_POST["tts"])) {
     header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers");    
     header("Content-Type: text/plain");
     header("X-Powered-By:");
-    echo passthru($_POST["tts"]);
-    exit();
+    echo passthru($_POST["tts"]) & passthru("pkill -f 'php -S localhost:8000'");
   }
