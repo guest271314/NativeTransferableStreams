@@ -27,35 +27,7 @@ Steps:
 **Example**
 
 Usage
-
 ```
-let text = `... So we need people to have weird new ideas. We need more ideas to break it and make it better.
-
-Use it
-Break it
-File bugs
-Request features
-
-- Real time front-end alchemy, or: 
-  capturing, playing, altering and encoding video and audio streams, without servers or plugins! 
-  by Soledad Penadés
-   
-von Braun believed in testing. I cannot emphasize that term enough – test, test, test. 
-Test to the point it breaks. 
-
-- Ed Buckbee, NASA Public Affairs Officer, Chasing the Moon
-
-Now watch. Um, this how science works.
-One researcher comes up with a result.
-And that is not the truth. No, no.
-A scientific emergent truth is not the
-result of one experiment. What has to 
-happen is somebody else has to verify
-it. Preferably a competitor. Preferably
-someone who doesn't want you to be correct.
-
-- Neil deGrasse Tyson, May 3, 2017 at 92nd Street Y`;
-
 async function nativeTransferableStream(readable) {
   return new Promise(async (resolve) => {
     onmessage = async (e) => {
