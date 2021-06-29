@@ -28,6 +28,7 @@ Steps:
 
 Usage
 ```
+// stream.js
 async function nativeTransferableStream(readable) {
   return new Promise(async (resolve) => {
     onmessage = async (e) => {
